@@ -1,0 +1,14 @@
+{
+    "$schema": "http://json.schemastore.org/template",
+    "author": "@bancosemear",
+    "identity": "Semear Web API",
+    "name": "Semear Web API",
+    "shortName": "semearapi",
+    "preferNameDirectory": true,
+    "sourceName": "TemplateApi",
+    "classifications": ["Web API", "API"],
+    "tags": {
+        "language": "C#",
+        "type": "project"
+    }
+}

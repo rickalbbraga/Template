@@ -1,0 +1,10 @@
+version: "3.8"
+
+services:
+  sonar:
+    container_name: sonar
+    image: sonarqube:latest
+    ports:
+      - "9000:9000"
+      - "9092:9092"
+    # Usuário e Senha: admin
