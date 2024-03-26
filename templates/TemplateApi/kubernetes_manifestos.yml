@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: __APP_NAME__
+  namespace: bs-payroll-loan
+spec:
+  selector:
+    matchLabels:
+      app: __APP_NAME__
+  replicas: __POD_REPLICAS__
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app: __APP_NAME__
+    spec:
+      containers:
+        - image: __ECR_URI__:__IMAGE_TAG__
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "__RESOURCES_REQUESTS_MEMORY__"
+              cpu: "__RESOURCES_REQUESTS_CPU__"
+            limits:
+              memory: "__RESOURCES_LIMITS_MEMORY__"
+              cpu: "__RESOURCES_LIMITS_CPU__"
+          name: container-__APP_NAME__
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: __ENVNAME__
+            - name: ASPNETCORE_URLS
+              value: __SSO_URL__
+            - name: TZ
+              value: America/Sao_Paulo
+          ports:
+            - containerPort: 80
+      tolerations:
+      - key: "__GLOBAL_TOLERATIONS_KEY__"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: eks.amazonaws.com/nodegroup
+                operator: In
+                values:
+                - __GLOBAL_NODEAFFINITY_GROUP__
+                - __GLOBAL_NODEAFFINITY_GROUP_SPOT__
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: bs-payroll-loan
+  name: service-__APP_NAME__
+  labels:
+    app: __APP_NAME__
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    app: __APP_NAME__
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/enable-cors: "false"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+  name: ingress-__APP_NAME__
+  namespace: bs-payroll-loan
+spec:
+  rules:
+  - host: __INGRESS_SPEC_RULES_HOSTS__
+    http:
+      paths:
+      - backend:
+          service:
+            name: service-__APP_NAME__
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  
